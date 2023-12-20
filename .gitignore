@@ -1,0 +1,10 @@
+# Vite Client
+node_modules/
+dist/
+.cache/
+yarn-error.log
+
+# Rust Axum Server
+target/
+Cargo.lock
+.env
