@@ -1,5 +1,6 @@
 use axum::response::{IntoResponse, Response};
 
+#[derive(Debug)]
 pub enum Error {
     NotFound,
     InternalServerError,

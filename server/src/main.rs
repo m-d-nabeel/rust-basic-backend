@@ -2,6 +2,7 @@ use axum::http::{HeaderValue, Method};
 use axum::Router;
 use tower_http::cors::{Any, CorsLayer};
 
+use crate::database::db::connect_db;
 use crate::router::communication_router::communication_router;
 use crate::router::hello_router::hello_router;
 use crate::utils::model::ModelController;
@@ -11,10 +12,13 @@ pub use self::utils::errors::Result;
 mod router;
 mod actions;
 mod utils;
+mod database;
 
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let db_pool = connect_db().await.expect("Error connecting to the database");
+    database::db_init::db_initialization(&db_pool).await?;
     let mc = ModelController::new().await?;
     let cors_middleware = CorsLayer::new()
         .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
