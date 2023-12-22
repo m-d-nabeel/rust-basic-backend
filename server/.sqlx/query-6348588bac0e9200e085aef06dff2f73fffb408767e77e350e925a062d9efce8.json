@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT m.id, m.user_id, m.message_text, m.created_at\n        FROM chatician.messages AS m\n        INNER JOIN chatician.channel_messages AS cm ON m.id = cm.message_id\n        WHERE cm.channel_id = $1\n        ORDER BY m.created_at DESC;",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "message_text",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "6348588bac0e9200e085aef06dff2f73fffb408767e77e350e925a062d9efce8"
+}

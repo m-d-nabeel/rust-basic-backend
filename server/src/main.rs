@@ -2,10 +2,13 @@ use axum::http::{HeaderValue, Method};
 use axum::Router;
 use tower_http::cors::{Any, CorsLayer};
 
+use database::model::ModelController;
+
 use crate::database::db::connect_db;
-use crate::router::communication_router::communication_router;
+use crate::router::channel_router::channel_router;
+use crate::router::chat_router::communication_router;
 use crate::router::hello_router::hello_router;
-use crate::utils::model::ModelController;
+use crate::router::user_router::user_router;
 
 pub use self::utils::errors::Result;
 
@@ -19,7 +22,7 @@ mod database;
 async fn main() -> anyhow::Result<()> {
     let db_pool = connect_db().await.expect("Error connecting to the database");
     database::db_init::db_initialization(&db_pool).await?;
-    let mc = ModelController::new().await?;
+    let mc = ModelController::new(db_pool);
     let cors_middleware = CorsLayer::new()
         .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
         .allow_methods([Method::GET, Method::POST, "content-type".parse::<Method>().unwrap()])
@@ -27,7 +30,9 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .nest("/", hello_router())
-        .nest("/chatician", communication_router(mc.clone()))
+        .nest("/chatician/chat", communication_router(mc.clone()))
+        .nest("/chatician/users", user_router(mc.clone()))
+        .nest("/chatician/channels", channel_router(mc.clone()))
         .layer(cors_middleware);
     let tcp_listener = tokio::net::TcpListener::bind("127.0.0.1:5000").await?;
     println!("Listening on {}", tcp_listener.local_addr()?);
