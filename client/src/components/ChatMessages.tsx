@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import MessageBox from "./MessageBox";
 
 function ChatMessages() {
   const navigate = useNavigate();
@@ -10,11 +10,14 @@ function ChatMessages() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    async function getMessages() {
+    async function getMessages(id: string) {
       try {
-        const response = await fetch("http://localhost:5000/chatician/send", {
-          method: "GET",
-        });
+        const response = await fetch(
+          `http://localhost:5000/chatician/chat/${id}`,
+          {
+            method: "GET",
+          }
+        );
 
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -26,8 +29,8 @@ function ChatMessages() {
       }
     }
 
-    getMessages();
     const searchParams = new URLSearchParams(window.location.search);
+    getMessages(searchParams.get("channel_id") || "1");
     if (searchParams.has("get_message")) {
       searchParams.delete("get_message");
       navigate(`?${searchParams.toString()}`);
@@ -51,20 +54,7 @@ function ChatMessages() {
       <div className="flex flex-col space-y-2">
         {!!messages &&
           messages.map((message: any, index: number) => (
-            <div
-              className={cn(
-                "flex items-end justify-start",
-                index % 2 === 0 && "justify-end"
-              )}
-              key={message.id}
-            >
-              <div className="max-w-xs rounded-lg bg-gray-200 p-3">
-                <p className="text-sm">{message.message_text}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {message.timestamp}
-                </p>
-              </div>
-            </div>
+            <MessageBox message={message} key={index} />
           ))}
         <div ref={bottomRef} />
       </div>
@@ -73,3 +63,5 @@ function ChatMessages() {
 }
 
 export default ChatMessages;
+
+// bg-gray-200
