@@ -9,9 +9,7 @@ pub struct ModelController {
 
 impl ModelController {
     pub fn new(db_pool: PgPool) -> Self {
-        Self {
-            db_pool
-        }
+        Self { db_pool }
     }
 }
 /***************************************************************/
@@ -21,6 +19,7 @@ impl ModelController {
 pub struct Message {
     pub id: Option<i32>,
     pub user_id: Option<i32>,
+    pub name: Option<String>,
     pub message_text: String,
     pub created_at: Option<OffsetDateTime>,
 }
@@ -31,51 +30,57 @@ pub struct MessageForCreate {
     pub message_text: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MessageId {
+    pub id: i32,
+}
+
 impl ModelController {
-    pub async fn create_message(&self, message_fc: MessageForCreate, channel_id: i32) -> Result<Message, sqlx::Error> {
-        let inserted_message = sqlx::query_as!(
-            Message,
+    pub async fn create_message(
+        &self,
+        message_fc: MessageForCreate,
+        channel_id: i32,
+    ) -> Result<(), sqlx::Error> {
+        let id_of_msg = sqlx::query_as!(
+            MessageId,
             r#"INSERT INTO chatician.messages(user_id, message_text)
             VALUES ($1, $2)
-            RETURNING id, user_id, message_text, created_at;"#,
+            RETURNING id;"#,
             message_fc.user_id,
             message_fc.message_text
         )
-            .fetch_one(&self.db_pool)
-            .await?;
-
-        let message_id = inserted_message.id.unwrap_or(0);
+        .fetch_one(&self.db_pool)
+        .await?;
 
         sqlx::query!(
             "INSERT INTO chatician.channel_messages(channel_id, message_id)
             VALUES ($1, $2)",
             channel_id,
-            message_id
+            id_of_msg.id
         )
-            .execute(&self.db_pool)
-            .await?;
+        .execute(&self.db_pool)
+        .await?;
 
-        Ok(inserted_message)
+        Ok(())
     }
-
 
     pub async fn get_messages(&self, channel_id: i32) -> Result<Vec<Message>, sqlx::Error> {
         let messages = sqlx::query_as!(
-        Message,
-        r#"SELECT m.id, m.user_id, m.message_text, m.created_at
+            Message,
+            r#"SELECT m.id, m.user_id, u.name, m.message_text, m.created_at
         FROM chatician.messages AS m
         INNER JOIN chatician.channel_messages AS cm ON m.id = cm.message_id
+        INNER JOIN chatician.users u on m.user_id = u.id
         WHERE cm.channel_id = $1
-        ORDER BY m.created_at DESC;"#,
-        channel_id
-    )
-            .fetch_all(&self.db_pool)
-            .await?;
+        ORDER BY m.created_at ASC;"#,
+            channel_id
+        )
+        .fetch_all(&self.db_pool)
+        .await?;
 
         Ok(messages)
     }
 }
-
 
 /***************************************************************/
 
@@ -97,7 +102,10 @@ pub struct ChannelForCreate {
 }
 
 impl ModelController {
-    pub async fn create_channel(&self, channel_fc: ChannelForCreate) -> Result<Channel, sqlx::Error> {
+    pub async fn create_channel(
+        &self,
+        channel_fc: ChannelForCreate,
+    ) -> Result<Channel, sqlx::Error> {
         let inserted_channel = sqlx::query_as!(
             Channel,
             r#"INSERT INTO chatician.channels(channel_name, description, created_by)
@@ -107,15 +115,14 @@ impl ModelController {
             channel_fc.description,
             channel_fc.created_by
         )
-            .fetch_one(&self.db_pool)
-            .await?;
+        .fetch_one(&self.db_pool)
+        .await?;
         Ok(inserted_channel)
     }
     pub async fn get_channels(&self) -> Result<Vec<Channel>, sqlx::Error> {
-        let channels = sqlx::query_as!(
-            Channel,
-            r#"SELECT * FROM chatician.channels;"#
-        ).fetch_all(&self.db_pool).await?;
+        let channels = sqlx::query_as!(Channel, r#"SELECT * FROM chatician.channels;"#)
+            .fetch_all(&self.db_pool)
+            .await?;
         Ok(channels)
     }
 }
@@ -146,15 +153,14 @@ impl ModelController {
             user_fc.name,
             user_fc.description
         )
-            .fetch_one(&self.db_pool)
-            .await?;
+        .fetch_one(&self.db_pool)
+        .await?;
         Ok(inserted_user)
     }
     pub async fn get_users(&self) -> Result<Vec<User>, sqlx::Error> {
-        let users = sqlx::query_as!(
-            User,
-            r#"SELECT * FROM chatician.users;"#
-        ).fetch_all(&self.db_pool).await?;
+        let users = sqlx::query_as!(User, r#"SELECT * FROM chatician.users;"#)
+            .fetch_all(&self.db_pool)
+            .await?;
         Ok(users)
     }
 }

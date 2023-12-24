@@ -51,11 +51,11 @@ WHERE NOT EXISTS (SELECT 1 FROM chatician.users WHERE name = 'SYSTEM');
 INSERT INTO chatician.channels (channel_name, description, created_by)
 SELECT 'GENERAL', 'General discussions & default channel', u.id
 FROM chatician.users u
-WHERE name = 'SYSTEM'
-  AND NOT EXISTS (SELECT 1
-                  FROM chatician.channels
-                  WHERE channel_name = 'GENERAL'
-                    AND created_by = u.id);
+WHERE name = 'SYSTEM' AND NOT EXISTS (
+                SELECT 1
+                FROM chatician.channels
+                WHERE channel_name = 'GENERAL' AND created_by = u.id
+            );
 
 -- SELECT *
 -- FROM chatician.channel_messages
@@ -70,3 +70,4 @@ WHERE name = 'SYSTEM'
 -- INSERT INTO chatician.channels(channel_name, description, created_by)
 -- VALUES ('hello_world', 'first channel created by create_channel', 2)
 -- RETURNING id, channel_name,description,created_by,created_at;
+
