@@ -1,73 +1,91 @@
-CREATE SCHEMA IF NOT EXISTS chatician;
-SET search_path TO chatician;
+SET SEARCH_PATH TO public;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- The rest of your SQL script follows...
-CREATE TABLE IF NOT EXISTS chatician.users
-(
-    id          SERIAL PRIMARY KEY,
-    name        varchar(255) NOT NULL UNIQUE,
-    description TEXT,
-    created_at  timestamptz DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS chatician.messages
-(
-    id           SERIAL PRIMARY KEY,
-    user_id      INTEGER REFERENCES chatician.users (id) ON DELETE CASCADE,
-    message_text TEXT NOT NULL,
-    created_at   timestamptz DEFAULT CURRENT_TIMESTAMP
-);
-
-
-CREATE TABLE IF NOT EXISTS chatician.channels
-(
-    id           SERIAL PRIMARY KEY,
-    channel_name varchar(255) NOT NULL UNIQUE,
-    description  TEXT,
-    created_by   INTEGER REFERENCES chatician.users (id),
-    created_at   timestamptz DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS chatician.channel_messages
-(
-    id         SERIAL PRIMARY KEY,
-    channel_id INTEGER REFERENCES chatician.channels (id) ON DELETE CASCADE,
-    message_id INTEGER REFERENCES chatician.messages (id) ON DELETE CASCADE,
-    created_at timestamptz DEFAULT CURRENT_TIMESTAMP
-);
-
--- Adding indexes for faster joins
-CREATE INDEX IF NOT EXISTS idx_user_id ON chatician.messages (user_id);
-CREATE INDEX IF NOT EXISTS idx_channel_id ON chatician.channel_messages (channel_id);
-CREATE INDEX IF NOT EXISTS idx_message_id ON chatician.channel_messages (message_id);
+-- CREATE TABLE IF NOT EXISTS users
+-- (
+--     id          UUID         NOT NULL PRIMARY KEY DEFAULT (uuid_generate_v4()),
+--     name        varchar(255) NOT NULL UNIQUE,
+--     description TEXT,
+--     created_at  TIMESTAMP
+--                     WITH TIME ZONE                DEFAULT NOW()
+-- );
+--
+-- CREATE TABLE IF NOT EXISTS messages
+-- (
+--     id           UUID NOT NULL PRIMARY KEY DEFAULT (uuid_generate_v4()),
+--     user_id      UUID REFERENCES users (id) ON DELETE CASCADE,
+--     message_text TEXT NOT NULL,
+--     created_at   TIMESTAMP
+--                      WITH TIME ZONE        DEFAULT NOW()
+-- );
 
 
--- Insert 'SYSTEM' user if it doesn't exist
-INSERT INTO chatician.users (name, description)
-SELECT 'SYSTEM', 'SYSTEM USER, FOR DEVELOPMENT CASE'
-WHERE NOT EXISTS (SELECT 1 FROM chatician.users WHERE name = 'SYSTEM');
+-- CREATE TABLE IF NOT EXISTS channels
+-- (
+--     id           UUID         NOT NULL PRIMARY KEY DEFAULT (uuid_generate_v4()),
+--     channel_name varchar(255) NOT NULL UNIQUE,
+--     description  TEXT,
+--     created_by   UUID REFERENCES users (id),
+--     created_at   TIMESTAMP
+--                      WITH TIME ZONE                DEFAULT NOW()
+-- );
+--
+-- CREATE TABLE IF NOT EXISTS channel_messages
+-- (
+--     id         UUID NOT NULL PRIMARY KEY DEFAULT (uuid_generate_v4()),
+--     channel_id UUID REFERENCES channels (id) ON DELETE CASCADE,
+--     message_id UUID REFERENCES messages (id) ON DELETE CASCADE,
+--     created_at TIMESTAMP
+--                    WITH TIME ZONE        DEFAULT NOW()
+-- );
 
--- Insert 'SYSTEM' channel if it doesn't exist
-INSERT INTO chatician.channels (channel_name, description, created_by)
-SELECT 'GENERAL', 'General discussions & default channel', u.id
-FROM chatician.users u
-WHERE name = 'SYSTEM' AND NOT EXISTS (
-                SELECT 1
-                FROM chatician.channels
-                WHERE channel_name = 'GENERAL' AND created_by = u.id
-            );
+-- -- Adding indexes for faster joins
+-- CREATE INDEX IF NOT EXISTS idx_user_id ON messages (user_id);
+-- CREATE INDEX IF NOT EXISTS idx_channel_id ON channel_messages (channel_id);
+-- CREATE INDEX IF NOT EXISTS idx_message_id ON channel_messages (message_id);
+
+
+-- -- Insert 'SYSTEM' user if it doesn't exist
+-- INSERT INTO users (name, description)
+-- SELECT 'SYSTEM', 'SYSTEM USER, FOR DEVELOPMENT CASE'
+-- WHERE NOT EXISTS (SELECT 1 FROM users WHERE name = 'SYSTEM');
+--
+-- -- Insert 'SYSTEM' channel if it doesn't exist
+-- INSERT INTO channels (channel_name, description, created_by)
+-- SELECT 'GENERAL', 'General discussions & default channel', u.id
+-- FROM users u
+-- WHERE name = 'SYSTEM'
+--   AND NOT EXISTS (SELECT 1
+--                   FROM channels
+--                   WHERE channel_name = 'GENERAL'
+--                     AND created_by = u.id);
 
 -- SELECT *
--- FROM chatician.channel_messages
---          JOIN chatician.messages c on c.id = channel_messages.message_id
+-- FROM channel_messages
+--          JOIN messages c on c.id = channel_messages.message_id
 -- WHERE channel_id = 1
 -- ORDER BY c.created_at DESC;
 --
 --
--- INSERT INTO chatician.users (name, description)
+-- INSERT INTO users (name, description)
 -- VALUES ('Nabeel', 'First USER LOL');
 --
--- INSERT INTO chatician.channels(channel_name, description, created_by)
+-- INSERT INTO channels(channel_name, description, created_by)
 -- VALUES ('hello_world', 'first channel created by create_channel', 2)
 -- RETURNING id, channel_name,description,created_by,created_at;
 
+
+-- REAL USER
+-- SELECT * FROM pg_available_extensions WHERE name = 'uuid-ossp';
+-- -- generate universally unique identifiers (UUIDs)
+
+CREATE TABLE IF NOT EXISTS real_user
+(
+    id         UUID         NOT NULL PRIMARY KEY DEFAULT (uuid_generate_v4()),
+    name       VARCHAR(100) NOT NULL,
+    email      VARCHAR(255) NOT NULL UNIQUE,
+    password   VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP
+                   WITH TIME ZONE                DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS users_email_idx ON real_user (email);

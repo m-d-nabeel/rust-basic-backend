@@ -1,6 +1,6 @@
 #!/bin/bash
 clear
-docker start dis-postgres-01
-export DATABASE_URL=postgres://postgres:mysecretpassword@localhost:5432/postgres
+docker compose up -d
+export DATABASE_URL=postgres://dis-name-02:dis-password-02@localhost/postgres
 cargo sqlx prepare
 cargo run

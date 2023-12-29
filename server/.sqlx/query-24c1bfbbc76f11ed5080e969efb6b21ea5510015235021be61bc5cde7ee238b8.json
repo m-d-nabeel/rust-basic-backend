@@ -1,12 +1,12 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO chatician.users(name, description)\n            VALUES ($1, $2)\n            RETURNING id, name,description,created_at;",
+  "query": "SELECT * FROM real_user WHERE id = $1",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
         "name": "id",
-        "type_info": "Int4"
+        "type_info": "Uuid"
       },
       {
         "ordinal": 1,
@@ -15,27 +15,32 @@
       },
       {
         "ordinal": 2,
-        "name": "description",
-        "type_info": "Text"
+        "name": "email",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 3,
+        "name": "password",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
         "name": "created_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Varchar",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
       false,
       false,
-      true,
+      false,
+      false,
       true
     ]
   },
-  "hash": "a123f2398547683e817a07e0b2d1fff9f016699f51ea31332c4babe6d781b9db"
+  "hash": "24c1bfbbc76f11ed5080e969efb6b21ea5510015235021be61bc5cde7ee238b8"
 }

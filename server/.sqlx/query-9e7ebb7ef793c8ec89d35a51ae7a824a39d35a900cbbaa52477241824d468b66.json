@@ -1,27 +1,27 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO chatician.channels(channel_name, description, created_by)\n            VALUES ($1, $2, $3)\n            RETURNING id, channel_name,description,created_by,created_at;",
+  "query": "INSERT INTO real_user (name, email, password)\n                VALUES ($1, $2, $3) RETURNING *;",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
         "name": "id",
-        "type_info": "Int4"
+        "type_info": "Uuid"
       },
       {
         "ordinal": 1,
-        "name": "channel_name",
+        "name": "name",
         "type_info": "Varchar"
       },
       {
         "ordinal": 2,
-        "name": "description",
-        "type_info": "Text"
+        "name": "email",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 3,
-        "name": "created_by",
-        "type_info": "Int4"
+        "name": "password",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 4,
@@ -32,17 +32,17 @@
     "parameters": {
       "Left": [
         "Varchar",
-        "Text",
-        "Int4"
+        "Varchar",
+        "Varchar"
       ]
     },
     "nullable": [
       false,
       false,
-      true,
-      true,
+      false,
+      false,
       true
     ]
   },
-  "hash": "fa941214cdc6d46cfb6c25e49e1ac5f52b0f41167cfb71a7a74b036ba4dc568e"
+  "hash": "9e7ebb7ef793c8ec89d35a51ae7a824a39d35a900cbbaa52477241824d468b66"
 }

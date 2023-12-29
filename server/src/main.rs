@@ -1,41 +1,59 @@
-use axum::http::{HeaderValue, Method};
 use axum::Router;
-use tower_http::cors::{Any, CorsLayer};
+use axum::routing::get;
+use dotenv::dotenv;
+use tower_http::trace::TraceLayer;
 
-use database::model::ModelController;
+use model::model::ModelController;
 
+use crate::actions::user_action::get_users;
+use crate::config::Config;
 use crate::database::db::connect_db;
-use crate::router::channel_router::channel_router;
-use crate::router::chat_router::communication_router;
 use crate::router::hello_router::hello_router;
-use crate::router::user_router::user_router;
+use crate::router::user_setup_router::{AppState, user_setup_router};
+use crate::utils::auth_mw::auth;
+use crate::utils::cors_setup::cors_layer;
 
-pub use self::utils::errors::Result;
-
-mod router;
 mod actions;
-mod utils;
+mod config;
 mod database;
-
+mod model;
+mod router;
+mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let db_pool = connect_db().await.expect("Error connecting to the database");
-    database::db_init::db_initialization(&db_pool).await?;
-    let mc = ModelController::new(db_pool);
-    let cors_middleware = CorsLayer::new()
-        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
-        .allow_methods([Method::GET, Method::POST, "content-type".parse::<Method>().unwrap()])
-        .allow_headers(Any);
+    dotenv().ok();
 
-    let app = Router::new()
-        .nest("/", hello_router())
-        .nest("/chatician/chat", communication_router(mc.clone()))
-        .nest("/chatician/users", user_router(mc.clone()))
-        .nest("/chatician/channels", channel_router(mc.clone()))
-        .layer(cors_middleware);
-    let tcp_listener = tokio::net::TcpListener::bind("127.0.0.1:5000").await?;
+    let config = Config::init();
+
+    let db_pool = connect_db(config.database_url.as_str()).await?;
+    database::db_init::db_initialization(&db_pool).await?;
+
+    let mc = ModelController::new(db_pool);
+
+    let app = main_router(mc)
+        .layer(cors_layer())
+        .layer(tower::ServiceBuilder::new().layer(TraceLayer::new_for_http()));
+
+    // NOTE: Service Builder is used for top_down preference not needed here
+
+    let tcp_listener = tokio::net::TcpListener::bind(config.api_url).await?;
     println!("Listening on {}", tcp_listener.local_addr()?);
     axum::serve(tcp_listener, app).await?;
+
     Ok(())
+}
+
+fn main_router(mc: ModelController) -> Router {
+    let cloned = mc.clone();
+    let app_state = AppState { mc:cloned};
+    Router::new()
+        .nest("/", hello_router())
+        .route(
+            "/chatician/users",
+            get(get_users)
+                .with_state(app_state.clone())
+                .route_layer(axum::middleware::from_fn_with_state(app_state.clone(), auth))
+        )
+        .nest("/chatician/users/setup", user_setup_router(mc.clone()))
 }

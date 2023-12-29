@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: dis-postgres-02
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: dis-vol-02
+      POSTGRES_USER: dis-name-02
+      POSTGRES_PASSWORD: dis-password-02
+    volumes:
+      - local:/var/lib/postgresql/data
+
+volumes:
+  local:
+    external: true
+    name: dis-vol-02

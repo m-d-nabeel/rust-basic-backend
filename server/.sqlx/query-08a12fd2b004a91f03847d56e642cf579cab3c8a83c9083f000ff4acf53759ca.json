@@ -1,12 +1,12 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM chatician.users;",
+  "query": "SELECT * FROM real_user",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
         "name": "id",
-        "type_info": "Int4"
+        "type_info": "Uuid"
       },
       {
         "ordinal": 1,
@@ -15,11 +15,16 @@
       },
       {
         "ordinal": 2,
-        "name": "description",
-        "type_info": "Text"
+        "name": "email",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 3,
+        "name": "password",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
         "name": "created_at",
         "type_info": "Timestamptz"
       }
@@ -30,9 +35,10 @@
     "nullable": [
       false,
       false,
-      true,
+      false,
+      false,
       true
     ]
   },
-  "hash": "799ea9b71e6ba5a9a1753af6aee4e3b530c2fef56859609f1cf45f7135b6eec7"
+  "hash": "08a12fd2b004a91f03847d56e642cf579cab3c8a83c9083f000ff4acf53759ca"
 }
