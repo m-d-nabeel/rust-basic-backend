@@ -3,11 +3,11 @@ use axum::http::StatusCode;
 use axum::Json;
 use axum::response::IntoResponse;
 
-use crate::actions::user_setup_action::CustomResult;
-use crate::model::model::{ModelController, RealUser};
+use crate::actions::auth_actions::CustomResult;
+use crate::model::model::{ModelController, Member};
 
-pub async fn get_users(State(mc): State<ModelController>) -> CustomResult<impl IntoResponse> {
-    let users = sqlx::query_as!(RealUser, "SELECT * FROM real_user")
+pub async fn get_members(State(mc): State<ModelController>) -> CustomResult<impl IntoResponse> {
+    let members = sqlx::query_as!(Member, "SELECT * from member")
         .fetch_all(&mc.db_pool)
         .await
         .map_err(|e| {
@@ -17,5 +17,5 @@ pub async fn get_users(State(mc): State<ModelController>) -> CustomResult<impl I
             });
             (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response))
         })?;
-    Ok(Json(users))
+    Ok(Json(members))
 }

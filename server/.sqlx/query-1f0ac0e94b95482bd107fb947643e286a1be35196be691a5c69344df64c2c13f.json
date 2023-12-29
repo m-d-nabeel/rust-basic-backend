@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM real_user",
+  "query": "SELECT * FROM member WHERE email = $1",
   "describe": {
     "columns": [
       {
@@ -30,7 +30,9 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Text"
+      ]
     },
     "nullable": [
       false,
@@ -40,5 +42,5 @@
       true
     ]
   },
-  "hash": "08a12fd2b004a91f03847d56e642cf579cab3c8a83c9083f000ff4acf53759ca"
+  "hash": "1f0ac0e94b95482bd107fb947643e286a1be35196be691a5c69344df64c2c13f"
 }

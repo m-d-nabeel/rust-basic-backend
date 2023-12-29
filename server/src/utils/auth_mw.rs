@@ -7,9 +7,9 @@ use axum_extra::extract::cookie::CookieJar;
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use serde_json::json;
 
-use crate::actions::user_setup_action::CustomResult;
-use crate::model::model::{RealUser, TokenClaims};
-use crate::router::user_setup_router::AppState;
+use crate::actions::auth_actions::CustomResult;
+use crate::model::model::{TokenClaims, Member};
+use crate::router::auth_router::AppState;
 
 pub async fn auth(
     cookie_jar: CookieJar,
@@ -46,40 +46,40 @@ pub async fn auth(
         &DecodingKey::from_secret(b"my_ultra_secure_secret"),
         &Validation::default(),
     )
-    .map_err(|_| {
-        let json_error = json!( {
+        .map_err(|_| {
+            let json_error = json!( {
             "status": "fail",
             "message": "Invalid token",
         });
-        (StatusCode::UNAUTHORIZED, Json(json_error))
-    })?
-    .claims;
-    let user_id = uuid::Uuid::parse_str(&claims.sub).map_err(|_| {
+            (StatusCode::UNAUTHORIZED, Json(json_error))
+        })?
+        .claims;
+    let member_id = uuid::Uuid::parse_str(&claims.sub).map_err(|_| {
         let json_error = json!( {
             "status": "fail",
             "message": "Invalid token",
         });
         (StatusCode::UNAUTHORIZED, Json(json_error))
     })?;
-    let user = sqlx::query_as!(RealUser, "SELECT * FROM real_user WHERE id = $1", user_id)
+    let member = sqlx::query_as!(Member, "SELECT * FROM member WHERE id = $1", member_id)
         .fetch_optional(&app_state.mc.db_pool)
         .await
         .map_err(|e| {
             let json_error = json!( {
                 "status": "fail",
-                "message": format!("Error fetching user from database: {}", e),
+                "message": format!("Error fetching member from database: {}", e),
             });
             (StatusCode::INTERNAL_SERVER_ERROR, Json(json_error))
         })?;
 
-    let user = user.ok_or_else(|| {
+    let member = member.ok_or_else(|| {
         let json_error = json!( {
             "status": "fail",
-            "message": "The user belonging to this token no longer exists",
+            "message": "The member belonging to this token no longer exists",
         });
         (StatusCode::UNAUTHORIZED, Json(json_error))
     })?;
 
-    req.extensions_mut().insert(user);
+    req.extensions_mut().insert(member);
     Ok(next.run(req).await)
 }

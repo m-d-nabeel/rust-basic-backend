@@ -7,24 +7,23 @@ use axum::Json;
 use axum::response::{IntoResponse, Response};
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{encode, EncodingKey, Header};
-use serde_json::json;
 
 use crate::model::model::{
-    FilteredUser, LoginUserSchema, ModelController, RealUser, RegisterUserSchema, TokenClaims,
+    FilteredMember, LoginMemberSchema, Member, ModelController, RegisterMemberSchema, TokenClaims,
 };
 
 pub type CustomResult<T> = Result<T, (StatusCode, Json<serde_json::Value>)>;
 
-pub async fn register_user_handler(
+pub async fn register_member_handler(
     State(mc): State<ModelController>,
-    Json(register_us): Json<RegisterUserSchema>,
+    Json(register_ms): Json<RegisterMemberSchema>,
 ) -> CustomResult<impl IntoResponse> {
-    let existing_user = sqlx::query_scalar(
+    let existing_member = sqlx::query_scalar(
         r#"SELECT EXISTS(
-                SELECT 1 FROM real_user WHERE email = $1
+                SELECT 1 FROM member WHERE email = $1
             );"#,
     )
-    .bind(register_us.email.to_owned().to_ascii_lowercase())
+    .bind(register_ms.email.to_owned().to_ascii_lowercase())
     .fetch_one(&mc.db_pool)
     .await
     .map_err(|e| {
@@ -35,7 +34,7 @@ pub async fn register_user_handler(
         (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response))
     })?;
 
-    if let Some(exists) = existing_user {
+    if let Some(exists) = existing_member {
         if exists {
             let error_response = serde_json::json!({
                 "status":"fail",
@@ -47,9 +46,9 @@ pub async fn register_user_handler(
 
     let salt = SaltString::generate(&mut OsRng);
     let hashed_password = Argon2::default()
-        .hash_password(register_us.password.as_bytes(), &salt)
+        .hash_password(register_ms.password.as_bytes(), &salt)
         .map_err(|e| {
-            let error_response = json!({
+            let error_response = serde_json::json!({
                 "status":"fail",
                 "message": format!("Error while hashing password, {}",e)
             });
@@ -57,12 +56,12 @@ pub async fn register_user_handler(
         })
         .map(|hash| hash.to_string())?;
 
-    let user = sqlx::query_as!(
-        RealUser,
-        r#"INSERT INTO real_user (name, email, password)
-                VALUES ($1, $2, $3) RETURNING *;"#,
-        register_us.name.to_string(),
-        register_us.email.to_string().to_ascii_lowercase(),
+    let member = sqlx::query_as!(
+        Member,
+        r#"INSERT INTO member (name, email, password)
+           VALUES ($1, $2, $3) RETURNING *;"#,
+        register_ms.name.to_string(),
+        register_ms.email.to_string().to_ascii_lowercase(),
         hashed_password
     )
     .fetch_one(&mc.db_pool)
@@ -74,52 +73,52 @@ pub async fn register_user_handler(
         });
         (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response))
     })?;
-    let user_response = serde_json::json!({"status": "success","data": serde_json::json!({
-        "user": filter_user_record(&user)
+    let member_response = serde_json::json!({"status": "success","data": serde_json::json!({
+        "member": filter_member_record(&member)
     })});
 
-    Ok(Json(user_response))
+    Ok(Json(member_response))
 }
 
 /******************************END BLOCK****************************/
 
-pub async fn login_user_handler(
+pub async fn login_member_handler(
     State(mc): State<ModelController>,
-    Json(login_us): Json<LoginUserSchema>,
+    Json(login_ms): Json<LoginMemberSchema>,
 ) -> CustomResult<impl IntoResponse> {
-    let user_email = login_us.email.to_ascii_lowercase();
-    let user_password = login_us.password;
-    let user = sqlx::query_as!(
-        RealUser,
-        "SELECT * FROM real_user WHERE email = $1",
-        user_email
+    let member_email = login_ms.email.to_ascii_lowercase();
+    let member_password = login_ms.password;
+    let member = sqlx::query_as!(
+        Member,
+        "SELECT * FROM member WHERE email = $1",
+        member_email
     )
     .fetch_optional(&mc.db_pool)
     .await
     .map_err(|e| {
-        let error_response = json! ({
+        let error_response = serde_json::json!({
             "status":"error",
             "message":format!("Database error, {}", e),
         });
         (StatusCode::INTERNAL_SERVER_ERROR, Json(error_response))
     })?
     .ok_or_else(|| {
-        let error_response = json! ({
+        let error_response = serde_json::json!({
             "status":"fail",
             "message":"Invalid email"
         });
         (StatusCode::BAD_REQUEST, Json(error_response))
     })?;
 
-    let is_valid = match PasswordHash::new(&user.password) {
+    let is_valid = match PasswordHash::new(&member.password) {
         Ok(parsed_hash) => Argon2::default()
-            .verify_password(user_password.as_bytes(), &parsed_hash)
+            .verify_password(member_password.as_bytes(), &parsed_hash)
             .map_or(false, |_| true),
         Err(_) => false,
     };
 
     if !is_valid {
-        let error_response = json!({
+        let error_response = serde_json::json!({
             "status" : "fail",
             "message":"Invalid password"
         });
@@ -131,7 +130,7 @@ pub async fn login_user_handler(
     let exp = (now + chrono::Duration::minutes(15)).timestamp() as usize;
 
     let claims = TokenClaims {
-        sub: user.id.to_string(),
+        sub: member.id.to_string(),
         iat,
         exp,
     };
@@ -151,7 +150,7 @@ pub async fn login_user_handler(
         .build();
 
     let mut response = Response::new(
-        json!({
+        serde_json::json!({
             "status":"success",
             "token" : token
         })
@@ -166,11 +165,13 @@ pub async fn login_user_handler(
 }
 
 /*******************************************************/
-fn filter_user_record(user: &RealUser) -> FilteredUser {
-    FilteredUser {
-        id: user.id.to_string(),
-        email: user.email.to_owned(),
-        name: user.name.to_owned(),
-        created_at: Option::from(user.created_at.unwrap()),
+fn filter_member_record(member: &Member) -> FilteredMember {
+    FilteredMember {
+        id: member.id.to_string(),
+        email: member.email.to_owned(),
+        name: member.name.to_owned(),
+        created_at: Option::from(member.created_at.map(|date| date.clone())),
+        profile_pic: Option::from(member.profile_pic.as_ref().map(|pfp| pfp.clone())),
+        status: Option::from(member.status.as_ref().map(|status| status.clone())),
     }
 }

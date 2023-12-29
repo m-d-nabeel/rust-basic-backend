@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM real_user WHERE id = $1",
+  "query": "SELECT * from member",
   "describe": {
     "columns": [
       {
@@ -30,9 +30,7 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Uuid"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
@@ -42,5 +40,5 @@
       true
     ]
   },
-  "hash": "24c1bfbbc76f11ed5080e969efb6b21ea5510015235021be61bc5cde7ee238b8"
+  "hash": "cd498f59ced658933a1d64815d5d14f278ae5c78d31dd8afa131bbc012a0b128"
 }
