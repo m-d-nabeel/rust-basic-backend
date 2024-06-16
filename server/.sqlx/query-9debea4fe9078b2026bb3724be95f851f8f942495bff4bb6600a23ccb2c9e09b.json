@@ -25,6 +25,16 @@
       },
       {
         "ordinal": 4,
+        "name": "profile_pic",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
         "name": "created_at",
         "type_info": "Timestamptz"
       }
@@ -41,6 +51,8 @@
       false,
       false,
       false,
+      true,
+      true,
       true
     ]
   },

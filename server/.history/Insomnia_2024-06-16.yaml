@@ -1,0 +1,160 @@
+_type: export
+__export_format: 4
+__export_date: 2024-06-16T16:17:14.408Z
+__export_source: insomnia.desktop.app:v9.2.0
+resources:
+  - _id: req_5837e490c6cd4c88827a3ca88d1fe711
+    parentId: wrk_181710a9c2e24ad99af4fd45188de8c1
+    modified: 1718553726301
+    created: 1703846830592
+    url: 0.0.0.0:5000/api/members
+    name: get-users
+    description: ""
+    method: GET
+    body: {}
+    preRequestScript: ""
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/2023.5.8
+        id: pair_d6cb30d928714e51b318ac22723025ed
+    authentication:
+      type: bearer
+      token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxZTlhN2UwZi0xZWJmLTQwNjktOTk4ZC1jMTZjMjBmNTY3NjEiLCJpYXQiOjE3MTg1NTM3MDQsImV4cCI6MTcxODU1NDYwNH0.gDdssr0hFcvG07JKPD3VAwn2LwGeJs7xYG6ylfFI_go
+      prefix: ""
+      disabled: false
+    metaSortKey: -1703846830592
+    isPrivate: false
+    pathParameters: []
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: wrk_181710a9c2e24ad99af4fd45188de8c1
+    parentId: null
+    modified: 1703357402808
+    created: 1703357402808
+    name: Chatician
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: req_df7f33eefe11433aa0748148a2cd3308
+    parentId: wrk_181710a9c2e24ad99af4fd45188de8c1
+    modified: 1703880474788
+    created: 1703468253960
+    url: 127.0.0.1:5000/api/setup/register
+    name: sign-up
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"name" : "istanbul",
+        	"email":"asharnabeel9@gmal.com",
+        	"password":"my_secret_password"
+        }
+    preRequestScript: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_e9aad9e615884f89ab0f36bdf20b808c
+      - name: User-Agent
+        value: insomnia/2023.5.8
+        id: pair_4200f244c87943cb9393f63645b47d3a
+    authentication:
+      type: bearer
+    metaSortKey: -1703468253960
+    isPrivate: false
+    pathParameters: []
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_2ee2370cc6f642068e1a095f60a79792
+    parentId: wrk_181710a9c2e24ad99af4fd45188de8c1
+    modified: 1703874520983
+    created: 1703457574895
+    url: 127.0.0.1:5000/api/setup/login
+    name: login
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"email":"asharnabeel9@gmal.com",
+        	"password":"my_secret_password"
+        }
+    preRequestScript: ""
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_7f09c68f785441d387562e31b82c025f
+        disabled: false
+      - name: User-Agent
+        value: insomnia/2023.5.8
+        id: pair_0f53118a33484ca7949e0110c2e0d90a
+        disabled: false
+    authentication: {}
+    metaSortKey: -1703457574895
+    isPrivate: false
+    pathParameters: []
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_0d87b39d75744f0cb29a91b3e31603d4
+    parentId: wrk_181710a9c2e24ad99af4fd45188de8c1
+    modified: 1703874803781
+    created: 1703385839681
+    url: http://localhost:5000/
+    name: hello_world
+    description: ""
+    method: GET
+    body: {}
+    preRequestScript: ""
+    parameters: []
+    headers:
+      - name: User-Agent
+        value: insomnia/2023.5.8
+    authentication: {}
+    metaSortKey: -1703385839681
+    isPrivate: false
+    pathParameters: []
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: env_f9e9a6f53d38968bb52cb308424b7bfcf79c9cbd
+    parentId: wrk_181710a9c2e24ad99af4fd45188de8c1
+    modified: 1703357402821
+    created: 1703357402821
+    name: Base Environment
+    data: {}
+    dataPropertyOrder: null
+    color: null
+    isPrivate: false
+    metaSortKey: 1703357402821
+    _type: environment
+  - _id: jar_f9e9a6f53d38968bb52cb308424b7bfcf79c9cbd
+    parentId: wrk_181710a9c2e24ad99af4fd45188de8c1
+    modified: 1703357402825
+    created: 1703357402825
+    name: Default Jar
+    cookies: []
+    _type: cookie_jar

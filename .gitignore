@@ -7,4 +7,4 @@ yarn-error.log
 # Rust Axum Server
 target/
 Cargo.lock
-.env
+.env.production

@@ -15,5 +15,4 @@ services:
 
 volumes:
   local:
-    external: true
     name: dis-vol-02
